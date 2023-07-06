@@ -9,18 +9,17 @@ import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
-import java.util.List;
 
 
 public class TokenGenerator {
-    public String generateToken(String username, String role, Long duration, String issuer) throws Exception {
+    public String generateToken(Long userId, String role, Long duration, String issuer) throws Exception {
         String privateKeyLocation = "/privateKey.pem";
         PrivateKey privateKey = readPrivateKey(privateKeyLocation);
 
         JwtClaimsBuilder claimsBuilder = Jwt.claims();
         long currentTimeInSecs = currentTimeInSecs();
         claimsBuilder.issuer(issuer);
-        claimsBuilder.subject(username);
+        claimsBuilder.subject(userId.toString());
         claimsBuilder.issuedAt(currentTimeInSecs);
         claimsBuilder.expiresAt(currentTimeInSecs + duration);
         claimsBuilder.groups(role);

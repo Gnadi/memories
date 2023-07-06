@@ -23,4 +23,10 @@ public class HomeRepository implements HomeDao {
     public void addPost(Post post) {
         em.persist(post);
     }
+
+    @Override
+    public Home findHomebyAdmin(Long admin) {
+        return em.createQuery("SELECT home FROM Home home WHERE home.adminId=:admin", Home.class)
+                .setParameter("admin", admin).getSingleResult();
+    }
 }

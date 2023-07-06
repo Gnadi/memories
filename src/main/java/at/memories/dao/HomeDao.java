@@ -8,4 +8,6 @@ public interface HomeDao {
 
     void addPost(Post post);
 
+    Home findHomebyAdmin(Long user);
+
 }

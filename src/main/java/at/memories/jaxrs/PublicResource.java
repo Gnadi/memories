@@ -1,13 +1,11 @@
 package at.memories.jaxrs;
 
 import at.memories.dto.HomeDto;
-import at.memories.dto.PostDto;
 import at.memories.dto.UserDto;
 import at.memories.mapper.UserMapper;
-import at.memories.model.request.AuthRequest;
-import at.memories.model.Home;
-import at.memories.model.request.ResponseRequest;
 import at.memories.model.User;
+import at.memories.model.request.AuthRequest;
+import at.memories.model.request.ResponseRequest;
 import at.memories.services.HomeService;
 import at.memories.services.UserService;
 import at.memories.util.TokenGenerator;
@@ -16,7 +14,13 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -34,7 +38,7 @@ public class PublicResource {
     @Inject
     UserMapper userMapper;
 
-    @ConfigProperty(name = "com.ard333.quarkusjwt.jwt.duration") public Long duration;
+    @ConfigProperty(name = "at.memories.quarkusjwt.jwt.duration") public Long duration;
     @ConfigProperty(name = "mp.jwt.verify.issuer") public String issuer;
 
     @GET
@@ -55,14 +59,19 @@ public class PublicResource {
     @PermitAll
     @POST
     @Path("/login") @Produces(MediaType.APPLICATION_JSON) @Consumes(MediaType.APPLICATION_JSON)
-    public Response login(@Context SecurityContext securityContext, AuthRequest authRequest) {
-        User user = this.userService.findUserByUsername(authRequest.getUsername());
+    public Response login(@Context SecurityContext securityContext, AuthRequest authRequest) throws Exception {
+        User user;
+        try {
+            user = this.userService.findUserByUsername(authRequest.getUsername());
+        } catch (NoResultException | NonUniqueResultException e) {
+            throw new Exception("No User found");
+        }
         if (user == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         if(BcryptUtil.matches(authRequest.getPassword(), user.password)) {
             try {
-                String token = new TokenGenerator().generateToken(user.username, user.role, duration, issuer);
+                String token = new TokenGenerator().generateToken(user.getId(), user.role, duration, issuer);
                 return Response.ok(new ResponseRequest(token)).build();
             } catch (Exception e) {
                 return Response.status(Response.Status.UNAUTHORIZED).build();

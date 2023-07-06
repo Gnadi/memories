@@ -6,6 +6,7 @@ import at.memories.dto.PostDto;
 public interface HomeService {
     void addHome(HomeDto homeDto);
 
-    void addPost(PostDto postDto);
+    void addPost(PostDto postDto) throws Exception;
 
+    void getPosts(Long homeId, Long userId);
 }
