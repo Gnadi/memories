@@ -1,12 +1,11 @@
 package at.memories.services;
 
 import at.memories.impl.UserRepository;
-import at.memories.mapper.UserMapper;
 import at.memories.model.User;
 import io.quarkus.elytron.security.common.BcryptUtil;
 
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
 
 @RequestScoped
 public class UserServiceBean implements UserService {
