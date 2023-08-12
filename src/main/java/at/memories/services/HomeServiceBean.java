@@ -28,13 +28,16 @@ public class HomeServiceBean implements HomeService {
     UserRepository userRepository;
 
     @Inject
+    UserService userService;
+
+    @Inject
     UserMapper userMapper;
     @Override
-    public void addHome(HomeDto homeDto) {
+    public void addHome(HomeDto homeDto) throws Exception {
         User admin = userMapper.toResource(homeDto.getAdmin());
         User user = userMapper.toResource(homeDto.getUser());
-        userRepository.addUser(admin);
-        userRepository.addUser(user);
+        userService.addUser(admin);
+        userService.addUser(user);
         Home home = new Home();
         home.setAdminId(admin.getId());
         home.setUserId(user.getId());
@@ -50,7 +53,10 @@ public class HomeServiceBean implements HomeService {
         if (home != null) {
             post.setHome(home);
             Storage storage = StorageOptions.getDefaultInstance().getService();
-            Bucket bucket = storage.get("storage name");
+            Bucket bucket = storage.get("moments-data");
+            if (bucket == null) {
+                bucket = storage.create(Bucket.newBuilder(home.getName()).build());
+            }
             Blob blob = bucket.create(home.getId().toString() + UUID.randomUUID(), postDto.getImage());
             post.setImageSource(blob.getBlobId().toString());
             homeRepository.addPost(post);

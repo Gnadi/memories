@@ -14,7 +14,10 @@ public class UserServiceBean implements UserService {
     UserRepository userRepository;
 
     @Override
-    public void addUser(User user) {
+    public void addUser(User user) throws Exception {
+        if (userRepository.userExists(user.username)) {
+            throw new Exception("User already exists");
+        }
         user.password = BcryptUtil.bcryptHash(user.password);
         userRepository.addUser(user);
     }

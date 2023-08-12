@@ -52,19 +52,24 @@ public class PublicResource {
     @PermitAll
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public void addUser(UserDto user) {
-        userService.addUser(userMapper.toResource(user));
+    public Response addUser(UserDto user) {
+        try {
+            userService.addUser(userMapper.toResource(user));
+            return Response.status(Response.Status.OK).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.SEE_OTHER).build();
+        }
     }
 
     @PermitAll
     @POST
     @Path("/login") @Produces(MediaType.APPLICATION_JSON) @Consumes(MediaType.APPLICATION_JSON)
-    public Response login(@Context SecurityContext securityContext, AuthRequest authRequest) throws Exception {
+    public Response login(@Context SecurityContext securityContext, AuthRequest authRequest) {
         User user;
         try {
             user = this.userService.findUserByUsername(authRequest.getUsername());
         } catch (NoResultException | NonUniqueResultException e) {
-            throw new Exception("No User found");
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         if (user == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -85,7 +90,11 @@ public class PublicResource {
     @POST
     @Path("/home") @Produces(MediaType.APPLICATION_JSON) @Consumes(MediaType.APPLICATION_JSON)
     public Response addHome(HomeDto home){
-        homeService.addHome(home);
+        try {
+            homeService.addHome(home);
+        } catch (Exception e) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
         return Response.ok().build();
     }
 }

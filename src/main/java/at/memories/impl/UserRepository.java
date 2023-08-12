@@ -27,4 +27,13 @@ public class UserRepository implements UserDao {
                 .getSingleResult();
     }
 
+    @Transactional
+    @Override
+    public boolean userExists(String username) {
+            Long count = em.createQuery("SELECT COUNT(u) FROM User u WHERE u.username = :username", Long.class)
+                    .setParameter("username", username)
+                    .getSingleResult();
+            return count > 0;
+    }
+
 }
