@@ -17,6 +17,10 @@ public class Post {
 
     private String imageSource;
 
+    private String bucket;
+
+    private String generation;
+
 
     public Long getId() {
         return id;
@@ -48,5 +52,21 @@ public class Post {
 
     public void setImageSource(String imageSource) {
         this.imageSource = imageSource;
+    }
+
+    public String getBucket() {
+        return bucket;
+    }
+
+    public void setBucket(String bucket) {
+        this.bucket = bucket;
+    }
+
+    public String getGeneration() {
+        return generation;
+    }
+
+    public void setGeneration(String generation) {
+        this.generation = generation;
     }
 }

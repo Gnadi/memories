@@ -27,6 +27,13 @@ public class UserRepository implements UserDao {
                 .getSingleResult();
     }
 
+    @Override
+    public User findUserById(Long userId) {
+        return em.createQuery("FROM User u WHERE u.id=:userId", User.class)
+                .setParameter("userId",userId)
+                .getSingleResult();
+    }
+
     @Transactional
     @Override
     public boolean userExists(String username) {
