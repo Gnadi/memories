@@ -8,15 +8,21 @@ import at.memories.mapper.PostMapper;
 import at.memories.mapper.UserMapper;
 import at.memories.model.Home;
 import at.memories.model.Post;
+import at.memories.model.PostImage;
 import at.memories.model.User;
 import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.graalvm.collections.Pair;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -100,6 +106,18 @@ public class HomeServiceBean implements HomeService {
             return postsDto;
         }
         return new PostsDto();
+    }
+
+    @Override
+    public List<Pair<Long, InputStream>> loadImagesToPost(List<PostImage> postIdImageSource) {
+        Storage storage = StorageOptions.getDefaultInstance().getService();
+        List<Pair<Long, InputStream>> imagesToPosts = new ArrayList<>();
+        postIdImageSource.forEach(post ->{
+            Blob blob = storage.get(BlobId.of(post.getBucketName(), post.getImageSource()));
+            byte[] content = blob.getContent();
+            imagesToPosts.add(Pair.create(post.getPostId(), new ByteArrayInputStream(content)));
+        });
+        return imagesToPosts;
     }
 
     // TODO create dynamically buckets for each home
