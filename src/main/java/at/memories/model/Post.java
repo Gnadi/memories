@@ -28,8 +28,6 @@ public class Post {
 
     private String bucket;
 
-    private String generation;
-
     private String place;
 
     private LocalDate date;
@@ -73,14 +71,6 @@ public class Post {
 
     public void setBucket(String bucket) {
         this.bucket = bucket;
-    }
-
-    public String getGeneration() {
-        return generation;
-    }
-
-    public void setGeneration(String generation) {
-        this.generation = generation;
     }
 
     public String getPlace() {

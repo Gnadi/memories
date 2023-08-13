@@ -10,9 +10,10 @@ import at.memories.model.Home;
 import at.memories.model.Post;
 import at.memories.model.PostImage;
 import at.memories.model.User;
+import com.google.cloud.WriteChannel;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
-import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import jakarta.enterprise.context.RequestScoped;
@@ -22,6 +23,7 @@ import org.graalvm.collections.Pair;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +31,7 @@ import java.util.UUID;
 @RequestScoped
 @Transactional
 public class HomeServiceBean implements HomeService {
+    private static final int MAX_SIZE_BYTES = 50 * 1024 * 1024;
     @Inject
     HomeRepository homeRepository;
 
@@ -71,15 +74,21 @@ public class HomeServiceBean implements HomeService {
         if (home != null) {
             post.setHome(home);
             Storage storage = StorageOptions.getDefaultInstance().getService();
-            Bucket bucket = storage.get("moments-data");
-            if (bucket == null) {
-                bucket = storage.create(Bucket.newBuilder(home.getName()).build());
+            BlobId blobId = BlobId.of("moments-data", home.getId().toString() + UUID.randomUUID());
+            BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+            byte[] content = postDto.getImage();
+            if (content.length <= MAX_SIZE_BYTES) {
+                try (WriteChannel writer = storage.writer(blobInfo)) {
+                    writer.write(ByteBuffer.wrap(content));
+                } finally {
+                    post.setImageSource(blobId.getName());
+                    post.setBucket(blobId.getBucket());
+                    homeRepository.addPost(post);
+                }
+            } else {
+                throw new Exception("image too large");
             }
-            Blob blob = bucket.create(home.getId().toString() + UUID.randomUUID(), postDto.getImage());
-            post.setImageSource(blob.getBlobId().getName());
-            post.setBucket(blob.getBlobId().getBucket());
-            post.setGeneration(blob.getBlobId().getGeneration().toString());
-            homeRepository.addPost(post);
+
         } else {
             throw new Exception("no home available");
         }
