@@ -11,8 +11,6 @@ import at.memories.services.UserService;
 import at.memories.util.TokenGenerator;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import jakarta.annotation.security.PermitAll;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
 import jakarta.inject.Inject;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.NonUniqueResultException;
@@ -21,10 +19,12 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+import java.util.List;
+import java.util.Optional;
 
 @Path("/api/public")
 public class PublicResource {
@@ -64,19 +64,23 @@ public class PublicResource {
     @PermitAll
     @POST
     @Path("/login") @Produces(MediaType.APPLICATION_JSON) @Consumes(MediaType.APPLICATION_JSON)
-    public Response login(@Context SecurityContext securityContext, AuthRequest authRequest) {
-        User user;
+    public Response login(AuthRequest authRequest) {
+        List<User> users;
         try {
-            user = this.userService.findUserByUsername(authRequest.getUsername());
+            users = this.userService.findUserByUsername(authRequest.getUsername());
         } catch (NoResultException | NonUniqueResultException e) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        if (user == null) {
+        if (users.isEmpty()) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        if(BcryptUtil.matches(authRequest.getPassword(), user.password)) {
+        Optional<User> authUser = users.stream()
+                .filter(user -> BcryptUtil.matches(authRequest.getPassword(), user.password))
+                .findFirst();
+        if(authUser.isPresent()) {
             try {
-                String token = new TokenGenerator().generateToken(user.getId(), user.role, duration, issuer);
+                String token = new TokenGenerator()
+                        .generateToken(authUser.get().getId(), authUser.get().role, duration, issuer);
                 return Response.ok(new ResponseRequest(token)).build();
             } catch (Exception e) {
                 return Response.status(Response.Status.UNAUTHORIZED).build();

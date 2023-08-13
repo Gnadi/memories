@@ -4,7 +4,6 @@ import at.memories.dto.HomeDto;
 import at.memories.dto.PostDto;
 import at.memories.dto.PostsDto;
 import at.memories.impl.HomeRepository;
-import at.memories.impl.UserRepository;
 import at.memories.mapper.PostMapper;
 import at.memories.mapper.UserMapper;
 import at.memories.model.Home;
@@ -28,9 +27,6 @@ public class HomeServiceBean implements HomeService {
     HomeRepository homeRepository;
 
     @Inject
-    UserRepository userRepository;
-
-    @Inject
     UserService userService;
 
     @Inject
@@ -42,6 +38,7 @@ public class HomeServiceBean implements HomeService {
     public void addHome(HomeDto homeDto) throws Exception {
         User admin = userMapper.toResource(homeDto.getAdmin());
         User user = userMapper.toResource(homeDto.getUser());
+        checkUsernames(homeDto);
         userService.addUser(admin);
         userService.addUser(user);
         Home home = new Home();
@@ -51,10 +48,19 @@ public class HomeServiceBean implements HomeService {
         homeRepository.addHome(home);
     }
 
+    private void checkUsernames(HomeDto homeDto) throws Exception {
+        // Username wird durch den URL namen angegeben und muss gleich sein ->
+        // dadurch ist ein login mit ausschließlich passwort möglich. Passwörter müssen unterschiedlich sein
+        if (!homeDto.getAdmin().getUsername().equalsIgnoreCase(homeDto.getUser().getUsername()) ||
+                userService.existsUsername(homeDto.getAdmin().getUsername()) ||
+                homeDto.getAdmin().getPassword().equalsIgnoreCase(homeDto.getUser().getPassword())) {
+            throw new Exception("Username already taken");
+        }
+    }
+
     @Override
     public void addPost(PostDto postDto) throws Exception {
-        Post post = new Post();
-        post.setDescription(postDto.getDescription());
+        Post post = postMapper.toResource(postDto);
         Home home = homeRepository.findHomebyAdmin(Long.valueOf(postDto.getAdmin()));
         if (home != null) {
             post.setHome(home);

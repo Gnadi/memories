@@ -7,6 +7,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+
+import java.util.List;
+
 @ApplicationScoped
 public class UserRepository implements UserDao {
 
@@ -21,10 +24,9 @@ public class UserRepository implements UserDao {
 
     @Transactional
     @Override
-    public User findUserByUsername(String username) {
+    public List<User> findUserByUsername(String username) {
         return em.createQuery("FROM User u WHERE u.username=:username", User.class)
-                .setParameter("username",username)
-                .getSingleResult();
+                .setParameter("username",username).getResultList();
     }
 
     @Override
