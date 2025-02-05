@@ -15,8 +15,8 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.microprofile.jwt.JsonWebToken;
-import org.graalvm.collections.Pair;
 
 import java.io.InputStream;
 import java.util.List;
@@ -29,6 +29,7 @@ public class UserResource {
 
     @Inject
     HomeService homeService;
+
     @GET
     @RolesAllowed("user")
     @Path("/me")

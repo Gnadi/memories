@@ -19,7 +19,7 @@ import com.google.cloud.storage.StorageOptions;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import org.graalvm.collections.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -38,15 +38,10 @@ public class HomeServiceBean implements HomeService {
     @Inject
     UserService userService;
 
-    @Inject
-    UserMapper userMapper;
-
-    @Inject
-    PostMapper postMapper;
     @Override
     public void addHome(HomeDto homeDto) throws Exception {
-        User admin = userMapper.toResource(homeDto.getAdmin());
-        User user = userMapper.toResource(homeDto.getUser());
+        User admin = UserMapper.INSTANCE.toResource(homeDto.getAdmin());
+        User user = UserMapper.INSTANCE.toResource(homeDto.getUser());
         checkUsernames(homeDto);
         userService.addUser(admin);
         userService.addUser(user);
@@ -69,7 +64,7 @@ public class HomeServiceBean implements HomeService {
 
     @Override
     public void addPost(PostDto postDto) throws Exception {
-        Post post = postMapper.toResource(postDto);
+        Post post = PostMapper.INSTANCE.toResource(postDto);
         Home home = homeRepository.findHomebyAdmin(Long.valueOf(postDto.getAdmin()));
         if (home != null) {
             post.setHome(home);
@@ -109,7 +104,7 @@ public class HomeServiceBean implements HomeService {
             long totalPostCount = homeRepository.getTotalPostCount(homeId);
             PostsDto postsDto = new PostsDto();
             List<Post> postsByPage = homeRepository.getPostsByPage(pageNumber, pageSize, homeId);
-            List<PostDto> posts = postMapper.toResource(postsByPage);
+            List<PostDto> posts = PostMapper.INSTANCE.toResource(postsByPage);
             postsDto.setPosts(posts);
             postsDto.setTotalPostCount(totalPostCount);
             return postsDto;
@@ -124,7 +119,7 @@ public class HomeServiceBean implements HomeService {
         postIdImageSource.forEach(post ->{
             Blob blob = storage.get(BlobId.of(post.getBucketName(), post.getImageSource()));
             byte[] content = blob.getContent();
-            imagesToPosts.add(Pair.create(post.getPostId(), new ByteArrayInputStream(content)));
+            imagesToPosts.add(Pair.of(post.getPostId(), new ByteArrayInputStream(content)));
         });
         return imagesToPosts;
     }

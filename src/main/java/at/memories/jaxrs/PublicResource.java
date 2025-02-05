@@ -35,9 +35,6 @@ public class PublicResource {
     @Inject
     HomeService homeService;
 
-    @Inject
-    UserMapper userMapper;
-
     @ConfigProperty(name = "at.memories.quarkusjwt.jwt.duration") public Long duration;
     @ConfigProperty(name = "mp.jwt.verify.issuer") public String issuer;
 
@@ -54,7 +51,7 @@ public class PublicResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response addUser(UserDto user) {
         try {
-            userService.addUser(userMapper.toResource(user));
+            userService.addUser(UserMapper.INSTANCE.toResource(user));
             return Response.status(Response.Status.OK).build();
         } catch (Exception e) {
             return Response.status(Response.Status.SEE_OTHER).build();

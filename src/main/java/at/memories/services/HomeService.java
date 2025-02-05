@@ -4,7 +4,7 @@ import at.memories.dto.HomeDto;
 import at.memories.dto.PostDto;
 import at.memories.dto.PostsDto;
 import at.memories.model.PostImage;
-import org.graalvm.collections.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.InputStream;
 import java.util.List;
